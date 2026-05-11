@@ -466,9 +466,9 @@ class ClonePanel(BrushPanel):
         return False
 
 ## ほげほげ Begin
-    def display_pbr_pair(self, col, same_material, source_image_present, target_image_present, settings, setting_name, name):
-        col.prop(settings, setting_name, text=name)
-        col.active = (not same_material) and source_image_present and target_image_present
+    def display_pbr_pair(self, source_image_present, target_image_present, settings, setting_name, name):
+        if source_image_present and target_image_present:
+            self.layout.column().prop(settings, setting_name, text=name)
 ## ほげほげ End
 
     def draw_header(self, context):
@@ -512,19 +512,17 @@ class ClonePanel(BrushPanel):
 
             if settings.pbr_clone_paint and len(ob.material_slots) > 1:
                 mat1 = ob.paint_clone_material
-                samemat = mat1 == mat2
-                # Displays the list of PBR components. Those missing valid image pairs get greyed out. Option can still be set and saved but will have no effect.
-                # Also, the whole list gets geyed if user has selected the same material. This will give users a visual clue at what will be done.
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_color_slot_present, mat2.pbr_color_slot_present, settings, "pbr_clone_paint_color", "Color / Albedo")
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_specular_slot_present, mat2.pbr_specular_slot_present, settings, "pbr_clone_paint_specular", "Specular / AO")
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_roughness_slot_present, mat2.pbr_roughness_slot_present, settings, "pbr_clone_paint_roughness", "Roughness")
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_metallic_slot_present, mat2.pbr_metallic_slot_present, settings, "pbr_clone_paint_metallic", "Metallic")
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_normal_slot_present, mat2.pbr_normal_slot_present, settings, "pbr_clone_paint_normal", "Normal")
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_bump_slot_present, mat2.pbr_bump_slot_present, settings, "pbr_clone_paint_bump", "Bump / Height")
-                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_displacement_slot_present, mat2.pbr_displacement_slot_present, settings, "pbr_clone_paint_displacement", "Displacement / Height")
+                # Displays a list of valid PBR component pairs.
+                if mat1 != mat2: # Will not display anything if materials are the same
+                    self.display_pbr_pair(mat1.pbr_color_slot_present, mat2.pbr_color_slot_present, settings, "pbr_clone_paint_color", "Color / Albedo")
+                    self.display_pbr_pair(mat1.pbr_specular_slot_present, mat2.pbr_specular_slot_present, settings, "pbr_clone_paint_specular", "Specular / AO")
+                    self.display_pbr_pair(mat1.pbr_roughness_slot_present, mat2.pbr_roughness_slot_present, settings, "pbr_clone_paint_roughness", "Roughness")
+                    self.display_pbr_pair(mat1.pbr_metallic_slot_present, mat2.pbr_metallic_slot_present, settings, "pbr_clone_paint_metallic", "Metallic")
+                    self.display_pbr_pair(mat1.pbr_normal_slot_present, mat2.pbr_normal_slot_present, settings, "pbr_clone_paint_normal", "Normal")
+                    self.display_pbr_pair(mat1.pbr_bump_slot_present, mat2.pbr_bump_slot_present, settings, "pbr_clone_paint_bump", "Bump / Height")
+                    self.display_pbr_pair(mat1.pbr_displacement_slot_present, mat2.pbr_displacement_slot_present, settings, "pbr_clone_paint_displacement", "Displacement / Height")
 # TODO, make sure that the same material is not selected IN C++ too.
 # TODO, check for source-target loops?
-# TODO, also update in shading!!!!
 # ほげほげ End
 
         elif settings.mode == 'IMAGE':
