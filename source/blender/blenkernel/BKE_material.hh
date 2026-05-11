@@ -135,7 +135,6 @@ Material *BKE_gpencil_material(Object *ob, short act);
 MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act);
 
 // ほげほげ Begin
-// TODO certains fichiers qui incluent cette définition ne savent pas c'est quoi TexPaintSlot et UString
 void BKE_texpaint_pbr_update_components(Material *ma);
 TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, StringRefNull base_name, UString name);
 // ほげほげ End

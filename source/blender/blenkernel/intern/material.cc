@@ -1694,13 +1694,12 @@ TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, blend
     {
       //std::cout << "material.cc " << base_name << " > " << name << " socket_type " << socket->type << std::endl; // TODO Remove after testing
       bNode *node = socket->link->fromnode;  // None of our sockets is multi-input (there is only one link), so we don't have to do any check here.
-      //std::cout << "material.cc  " << base_name << " > " << name << " : node \"" << node->name << "\" id \"" << node->idname << "\"" << std::endl;        // TODO Remove after testing
+      //std::cout << "material.cc  " << base_name << " > " << name << " : node \"" << node->name << "\" id \"" << node->idname << "\"" << std::endl; // TODO Remove after testing
       if (strcmp(node->idname, "ShaderNodeTexImage") == 0)   // Checks if the connected node is of image type.
       {
         Image *image = (Image *)node->id;
-        //std::cout << "material.cc  " << base_name << " > " << name << " : image \"" << image << "\"" << std::endl;        
+        //std::cout << "material.cc  " << base_name << " > " << name << " : image \"" << image << "\"" << std::endl;// TODO Remove after testing
 				if (image){	// If image is nullptr, will end up returning nullptr too.
-					short tot_slots = material->tot_slots;
 					for (int i = 0; i < material->tot_slots; i++) {
 						if (material->texpaintslot[i].ima == image) {
 							return &material->texpaintslot[i];
