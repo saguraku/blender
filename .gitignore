@@ -1,6 +1,10 @@
 # generic files to ignore
 .*
 
+# CLion
+/cmake-build-debug/
+/.idea/
+
 # python temp paths
 __pycache__/
 *.py[cod]
