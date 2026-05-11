@@ -6,6 +6,11 @@
  * \ingroup RNA
  */
 
+// ほげほげ Begin
+// TODO Remove when testing is finished
+#include <iostream>
+// ほげほげ End
+
 #include <cfloat>
 #include <cstdlib>
 
@@ -411,6 +416,74 @@ static int rna_TexPaintSlot_icon_get(PointerRNA *ptr)
 
   return ICON_NONE;
 }
+
+// ほげほげ Begin
+static bool rna_pbr_color_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+  if (ma->pbr_color_slot != nullptr) {
+//  std::cout << "rna color " << ma->pbr_color_slot << std::endl; // TODO Remove when testing is finished
+    return true;
+  }
+  return false;
+}
+static bool rna_pbr_specular_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+//  std::cout << "rna specular " << ma->pbr_specular_slot << std::endl; // TODO Remove when testing is finished
+  if (ma->pbr_specular_slot != nullptr) {
+    return true;
+  }
+  return false;
+}
+static bool rna_pbr_roughness_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+//  std::cout << "rna roughness " << ma->pbr_roughness_slot << std::endl; // TODO Remove when testing is finished
+  if (ma->pbr_roughness_slot != nullptr) {
+    return true;
+  }
+  return false;
+}
+static bool rna_pbr_metallic_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+//  std::cout << "rna metallic " << ma->pbr_metallic_slot << std::endl; // TODO Remove when testing is finished
+  if (ma->pbr_metallic_slot != nullptr) {
+
+    return true;
+  }
+  return false;
+}
+static bool rna_pbr_normal_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+//  std::cout << "rna normal " << ma->pbr_normal_slot << std::endl; // TODO Remove when testing is finished
+  if (ma->pbr_normal_slot != nullptr) {
+    return true;
+  }
+  return false;
+}
+static bool rna_pbr_bump_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+//  std::cout << "rna bump " << ma->pbr_bump_slot << std::endl; // TODO Remove when testing is finished
+  if (ma->pbr_bump_slot != nullptr) {
+    return true;
+  }
+  return false;
+}
+static bool rna_pbr_displacement_slot_present(PointerRNA *ptr)
+{
+  Material *ma = (Material *)ptr->data;
+//  std::cout << " rna displacement " << ma->pbr_displacement_slot << std::endl; // TODO Remove when testing is finished
+  if (ma->pbr_displacement_slot != nullptr) {
+    return true;
+  }
+  return false;
+}
+
+// ほげほげ End
 
 static bool rna_is_grease_pencil_get(PointerRNA *ptr)
 {
@@ -1276,6 +1349,52 @@ void RNA_def_material(BlenderRNA *brna)
   rna_def_texpaint_slots(brna, srna);
 
   rna_def_material_display(srna);
+
+// ほげほげ Begin
+  /* PBR Images for Clone Painting */
+  prop = RNA_def_property(srna, "pbr_color_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_color_slot");
+  prop = RNA_def_property(srna, "pbr_color_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_color_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "pbr_specular_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_specular_slot");
+  prop = RNA_def_property(srna, "pbr_specular_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_specular_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "pbr_roughness_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_roughness_slot");
+  prop = RNA_def_property(srna, "pbr_roughness_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_roughness_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "pbr_metallic_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_metallic_slot");
+  prop = RNA_def_property(srna, "pbr_metallic_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_metallic_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "pbr_normal_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_normal_slot");
+  prop = RNA_def_property(srna, "pbr_normal_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_normal_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "pbr_bump_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_bump_slot");
+  prop = RNA_def_property(srna, "pbr_bump_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_bump_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "pbr_displacement_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "pbr_displacement_slot");
+  prop = RNA_def_property(srna, "pbr_displacement_slot_present", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_pbr_displacement_slot_present", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+// ほげほげ End
 
   /* grease pencil */
   prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);

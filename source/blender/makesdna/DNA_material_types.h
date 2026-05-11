@@ -452,6 +452,11 @@ struct Material {
    */
   struct TexPaintSlot *texpaintslot = nullptr;
 
+// ほげほげ Begin
+  /* Images for PBR Clone Painting */
+  TexPaintSlot *pbr_color_slot, *pbr_specular_slot, *pbr_roughness_slot, *pbr_metallic_slot, *pbr_normal_slot, *pbr_bump_slot, *pbr_displacement_slot;
+// ほげほげ End
+
   /** Runtime cache for GLSL materials. */
   ListBaseT<LinkData> gpumaterial = {nullptr, nullptr};
 

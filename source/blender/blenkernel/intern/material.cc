@@ -16,6 +16,11 @@
 
 #include "MEM_guardedalloc.h"
 
+// ほげほげ Begin
+// TODO Remove after testing
+#include <iostream>
+// ほげほげ End
+
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
@@ -1678,6 +1683,48 @@ static ePaintSlotFilter material_paint_slot_filter(const Object *ob)
   return slot_filter;
 }
 
+// ほげほげ Begin
+TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, blender::StringRefNull base_name, blender::StringRef name)
+{
+  bNode *basenode = blender::bke::node_find_node_by_name(material->nodetree, base_name);
+  if (basenode)
+  {
+    const bNodeSocket *socket = blender::bke::node_find_socket(basenode, SOCK_IN, name);
+    if (blender::bke::node_count_socket_links(material->nodetree, socket))  // Checks if socket has at least one link.
+    {
+      //std::cout << "material.cc " << base_name << " > " << name << " socket_type " << socket->type << std::endl; // TODO Remove after testing
+      bNode *node = socket->link->fromnode;  // None of our sockets is multi-input (there is only one link), so we don't have to do any check here.
+      //std::cout << "material.cc  " << base_name << " > " << name << " : node \"" << node->name << "\" id \"" << node->idname << "\"" << std::endl;        // TODO Remove after testing
+      if (strcmp(node->idname, "ShaderNodeTexImage") == 0)   // Checks if the connected node is of image type.
+      {
+        Image *image = (Image *)node->id;
+        //std::cout << "material.cc  " << base_name << " > " << name << " : image \"" << image << "\"" << std::endl;        
+				if (image){	// If image is nullptr, will end up returning nullptr too.
+					short tot_slots = material->tot_slots;
+					for (int i = 0; i < material->tot_slots; i++) {
+						if (material->texpaintslot[i].ima == image) {
+							return material->texpaintslot[i];
+						}
+					}
+				}
+      }
+    }
+  }
+  return nullptr;
+}
+
+void BKE_texpaint_pbr_update_components(Material *ma)
+{
+  ma->pbr_color_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "Base Color");
+  ma->pbr_specular_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "IOR");
+  ma->pbr_roughness_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "Roughness");
+  ma->pbr_metallic_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "Metallic");
+  ma->pbr_normal_slot = BKE_texpaint_pbr_update_single_component(ma, "Normal Map", "Color");
+  ma->pbr_bump_slot = BKE_texpaint_pbr_update_single_component(ma, "Bump", "Height");
+  ma->pbr_displacement_slot = BKE_texpaint_pbr_update_single_component(ma, "Material Output", "Displacement");
+}
+// ほげほげ End
+
 void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *ob)
 {
   if (!ma) {
@@ -1727,6 +1774,11 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *o
       }
     }
   }
+
+// ほげほげ Begin
+// TODO, move this somewhere else maybe. In node tree?
+  BKE_texpaint_pbr_update_components(ma);
+// ほげほげ End
 
   /* Copy-on-eval needed when adding texture slot on an object with no materials.
    * But do it only when slots actually change to avoid continuous depsgraph updates. */
