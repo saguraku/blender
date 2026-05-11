@@ -24,6 +24,13 @@ struct bNode;
 struct bNodeTree;
 struct MaterialGPencilStyle;
 
+// ほげほげ Begin
+class UString;
+class StringRefNull;
+struct TexPaintSlot;
+// ほげほげ End
+
+
 /* -------------------------------------------------------------------- */
 /** \name Module
  * \{ */
