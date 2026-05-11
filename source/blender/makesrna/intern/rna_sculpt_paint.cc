@@ -1530,7 +1530,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
       "Use another UV map as clone source, otherwise use the 3D cursor as the source");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 
-// ほげほげ Start
+// ほげほげ Begin
   prop = RNA_def_property(srna, "pbr_clone_paint", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR);
   RNA_def_property_ui_text(
