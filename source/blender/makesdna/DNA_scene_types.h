@@ -1280,7 +1280,9 @@ enum eImagePaint_Interpolation : int {
 };
 
 /** #ImagePaintSettings::flag */
-enum eImagePaint_Flag : short {
+// ほげほげ Begin (mod)
+enum eImagePaint_Flag : int {
+  // ほげほげ End
   IMAGEPAINT_DRAWING = 1 << 0,
   // IMAGEPAINT_DRAW_TOOL = 1 << 1,         /* Deprecated. */
   // IMAGEPAINT_DRAW_TOOL_DRAWING = 1 << 2, /* Deprecated. */
@@ -1292,6 +1294,16 @@ enum eImagePaint_Flag : short {
   IMAGEPAINT_PROJECT_LAYER_CLONE = 1 << 7,
   IMAGEPAINT_PROJECT_LAYER_STENCIL = 1 << 8,
   IMAGEPAINT_PROJECT_LAYER_STENCIL_INV = 1 << 9,
+ // ほげほげ Begin
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR = 1 << 10,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_COLOR = 1 << 11,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_SPECULAR = 1 << 12,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_ROUGHNESS = 1 << 13,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_METALLIC = 1 << 14,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_NORMAL = 1 << 15,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_BUMP = 1 << 16,
+  IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_DISPLACEMENT = 1 << 17,
+ // ほげほげ End
 };
 ENUM_OPERATORS(eImagePaint_Flag)
 
@@ -1309,6 +1321,9 @@ struct ImagePaintSettings {
   Paint paint;
 
   eImagePaint_Flag flag = {};
+// ほげほげ Stard
+  char _pad10[6];
+// ほげほげ End
   eImagePaint_MissingData missing_data = {};
 
   /** For projection painting only. */

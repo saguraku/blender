@@ -526,6 +526,11 @@ struct Object {
   int totcol = 0;
   /** Currently selected material in the UI (one-based). */
   int actcol = 0;
+// ほげほげ Begin
+  /** Source material index for clone paint. */  
+  int cptcol = 0;
+  char _pad[4] = {};
+// ほげほげ End
 
   /* rot en drot have to be together! (transform('r' en 's')) */
   float loc[3] = {}, dloc[3] = {};

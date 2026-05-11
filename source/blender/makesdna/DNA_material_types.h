@@ -454,7 +454,13 @@ struct Material {
 
 // ほげほげ Begin
   /* Images for PBR Clone Painting */
-  TexPaintSlot *pbr_color_slot, *pbr_specular_slot, *pbr_roughness_slot, *pbr_metallic_slot, *pbr_normal_slot, *pbr_bump_slot, *pbr_displacement_slot;
+  TexPaintSlot *pbr_color_slot = nullptr,
+    *pbr_specular_slot = nullptr,
+    *pbr_roughness_slot = nullptr,
+    *pbr_metallic_slot = nullptr,
+    *pbr_normal_slot = nullptr,
+    *pbr_bump_slot = nullptr,
+    *pbr_displacement_slot = nullptr;
 // ほげほげ End
 
   /** Runtime cache for GLSL materials. */

@@ -1530,6 +1530,80 @@ static void rna_def_image_paint(BlenderRNA *brna)
       "Use another UV map as clone source, otherwise use the 3D cursor as the source");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 
+// ほげほげ Start
+  prop = RNA_def_property(srna, "pbr_clone_paint", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR);
+  RNA_def_property_ui_text(
+      prop,
+      "PBR Clone Paint",
+      "Clone paint from/to more than one image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_color", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_COLOR);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Base Color",
+      "Clone paint from/to base color image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_specular", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_SPECULAR);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Specular",
+      "Clone paint from/to specular image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_roughness", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_ROUGHNESS);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Roughness",
+      "Clone paint from/to roughness image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_metallic", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_METALLIC);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Metallic",
+      "Clone paint from/to metallic image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_normal", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_NORMAL);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Normal",
+      "Clone paint from/to normal image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_bump", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_BUMP);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Bump",
+      "Clone paint from/to bump image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+  prop = RNA_def_property(srna, "pbr_clone_paint_displacement", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_DISPLACEMENT);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Clone Paint Displacement",
+      "Clone paint from/to displacement image");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+// ほげほげ End
+
   /* integers */
 
   prop = RNA_def_property(srna, "seam_bleed", PROP_INT, PROP_PIXEL);

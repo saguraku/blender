@@ -1145,6 +1145,33 @@ static int rna_Object_active_material_editable(const PointerRNA *ptr, const char
   return is_editable ? int(PROP_EDITABLE) : 0;
 }
 
+
+// ほげほげ Begin
+static int rna_Object_clonepaintsrc_material_index_get(PointerRNA *ptr)
+{
+  Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+  return std::max<int>(ob->cptcol - 1, 0);
+}
+
+static void rna_Object_clonepaintsrc_material_index_set(PointerRNA *ptr, int value)
+{
+  Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+
+  value = std::max(std::min(value, ob->totcol - 1), 0);
+  ob->cptcol = value + 1;
+}
+
+static PointerRNA rna_Object_clonepaintsrc_material_get(PointerRNA *ptr)
+{
+  Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+  Material *ma;
+
+  ma = (ob->totcol) ? BKE_object_material_get(ob, ob->cptcol) : nullptr;
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(ma));
+}
+
+// ほげほげ End
+
 static void rna_Object_active_particle_system_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
@@ -3114,6 +3141,25 @@ static void rna_def_object(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_ui_text(prop, "Material Slots", "Material slots in the object");
 
+//ほげほげ Begin
+
+  prop = RNA_def_property(srna, "texpaint_material_slots", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "MaterialSlot");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_PROP_NAME);
+  /* Don't dereference the material slot pointer, it is the slot index encoded in a pointer. */
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Object_material_slots_begin",
+                                    "rna_Object_material_slots_next",
+                                    "rna_Object_material_slots_end",
+                                    "rna_Object_material_slots_get",
+                                    "rna_Object_material_slots_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(prop, "Material Slots", "Material slots in the object");
+
+//ほげほげ End
+
   prop = RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_pointer_funcs(prop,
@@ -3136,6 +3182,31 @@ static void rna_def_object(BlenderRNA *brna)
                              "rna_Object_active_material_index_range");
   RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
+
+//ほげほげ Begin
+
+  prop = RNA_def_property(srna, "paint_clone_material", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Material");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_Object_clonepaintsrc_material_get",
+                                 "rna_MaterialSlot_material_set",
+                                 nullptr,
+                                 "rna_MaterialSlot_material_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_editable_func(prop, "rna_MaterialSlot_material_editable");
+  RNA_def_property_ui_text(prop, "Paint Clone Material", "Material for clone painting");
+
+  prop = RNA_def_property(srna, "paint_clone_material_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "cptcol");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop,
+                             "rna_Object_clonepaintsrc_material_index_get",
+                             "rna_Object_clonepaintsrc_material_index_set",
+                             "rna_Object_active_material_index_range");
+  RNA_def_property_ui_text(prop, "Paint Clone Material Index", "Index of material for clone painting");
+
+//ほげほげ End
 
   /* transform */
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);

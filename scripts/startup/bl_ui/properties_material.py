@@ -40,6 +40,27 @@ class MATERIAL_UL_matslots(UIList):
         else:
             layout.label(text="", icon_value=icon)
 
+# ほげほげ Begin
+class MATERIAL_UL_texpaint_matslots(UIList):
+
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        # assert(isinstance(item, bpy.types.MaterialSlot)
+        # ob = data
+        slot = item
+        ma = slot.material
+
+        layout.context_pointer_set("id", ma)
+        layout.context_pointer_set("material_slot", slot)
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            if ma:
+                layout.prop(ma, "name", text="", emboss=False, icon_value=icon)
+            else:
+                layout.label(text="", icon_value=icon)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+# ほげほげ End
 
 class MaterialButtonsPanel:
     bl_space_type = 'PROPERTIES'
@@ -438,6 +459,9 @@ class MATERIAL_PT_animation(MaterialButtonsPanel, Panel, PropertiesAnimationMixi
 classes = (
     MATERIAL_MT_context_menu,
     MATERIAL_UL_matslots,
+# ほげほげ Begin
+    MATERIAL_UL_texpaint_matslots,
+# ほげほげ End
     MATERIAL_PT_preview,
     EEVEE_MATERIAL_PT_context_material,
     EEVEE_MATERIAL_PT_surface,

@@ -465,6 +465,12 @@ class ClonePanel(BrushPanel):
             return brush.image_brush_type == 'CLONE'
         return False
 
+## ほげほげ Begin
+    def display_pbr_pair(self, col, same_material, source_image_present, target_image_present, settings, setting_name, name):
+        col.prop(settings, setting_name, text=name)
+        col.active = (not same_material) and source_image_present and target_image_present
+## ほげほげ End
+
     def draw_header(self, context):
         settings = self.paint_settings(context)
         self.layout.prop(settings, "use_clone_layer", text="")
@@ -479,24 +485,47 @@ class ClonePanel(BrushPanel):
         col = layout.column()
 
         if settings.mode == 'MATERIAL':
-            if len(ob.material_slots) > 1:
-                col.label(text="Materials")
+# ほげほげ Begin
+            col.prop(settings, "pbr_clone_paint", text="PBR Multi-Image Mode")
+            # Since PBR mode requires a Source Material option (different from Active Material), and non-PBR mode does not allow setting Source Image from outside of Active Material, 
+            #   we have removed the Active Material option to avoid confusion. Active Material can still be changed from the toolbar of Texture Paint Window.
+            # This leaves only Source Material visible in PBR mode, and only Source Texture visible in non-PBR mode.
+            # (Eventually, if the code is changed to allow clone painting single textures across different materials in Material mode, activate Source Material and make Source Texture that of Source Material.)
+            if settings.pbr_clone_paint and len(ob.material_slots) > 1:
+                col.label(text="Source Material")
                 col.template_list(
-                    "MATERIAL_UL_matslots", "",
-                    ob, "material_slots",
-                    ob, "active_material_index",
+                    "MATERIAL_UL_texpaint_matslots", "",
+                    ob, "texpaint_material_slots",
+                    ob, "paint_clone_material_index",
                     rows=2,
                 )
 
-            mat = ob.active_material
-            if mat:
-                col.label(text="Source Clone Slot")
+            mat2 = ob.active_material
+            if (not settings.pbr_clone_paint) and mat2:
+                col.label(text="Source Texture")
                 col.template_list(
                     "TEXTURE_UL_texpaintslots", "",
-                    mat, "texture_paint_slots",
-                    mat, "paint_clone_slot",
+                    mat2, "texture_paint_slots",
+                    mat2, "paint_clone_slot",
                     rows=2,
                 )
+
+            if settings.pbr_clone_paint and len(ob.material_slots) > 1:
+                mat1 = ob.paint_clone_material
+                samemat = mat1 == mat2
+                # Displays the list of PBR components. Those missing valid image pairs get greyed out. Option can still be set and saved but will have no effect.
+                # Also, the whole list gets geyed if user has selected the same material. This will give users a visual clue at what will be done.
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_color_slot_present, mat2.pbr_color_slot_present, settings, "pbr_clone_paint_color", "Color / Albedo")
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_specular_slot_present, mat2.pbr_specular_slot_present, settings, "pbr_clone_paint_specular", "Specular / AO")
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_roughness_slot_present, mat2.pbr_roughness_slot_present, settings, "pbr_clone_paint_roughness", "Roughness")
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_metallic_slot_present, mat2.pbr_metallic_slot_present, settings, "pbr_clone_paint_metallic", "Metallic")
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_normal_slot_present, mat2.pbr_normal_slot_present, settings, "pbr_clone_paint_normal", "Normal")
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_bump_slot_present, mat2.pbr_bump_slot_present, settings, "pbr_clone_paint_bump", "Bump / Height")
+                self.display_pbr_pair(layout.column(), samemat, mat1.pbr_displacement_slot_present, mat2.pbr_displacement_slot_present, settings, "pbr_clone_paint_displacement", "Displacement / Height")
+# TODO, make sure that the same material is not selected IN C++ too.
+# TODO, check for source-target loops?
+# TODO, also update in shading!!!!
+# ほげほげ End
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
