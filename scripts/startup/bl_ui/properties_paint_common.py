@@ -512,8 +512,8 @@ class ClonePanel(BrushPanel):
 
             if settings.pbr_clone_paint and len(ob.material_slots) > 1:
                 mat1 = ob.paint_clone_material
-                # Displays a list of valid PBR component pairs.
-                if mat1 != mat2: # Will not display anything if materials are the same
+                # Displays a list of valid PBR component pairs. (Will not display anything if materials are the same.)
+                if mat1 != mat2:
                     self.display_pbr_pair(mat1.pbr_color_slot_present, mat2.pbr_color_slot_present, settings, "pbr_clone_paint_color", "Color / Albedo")
                     self.display_pbr_pair(mat1.pbr_specular_slot_present, mat2.pbr_specular_slot_present, settings, "pbr_clone_paint_specular", "Specular / AO")
                     self.display_pbr_pair(mat1.pbr_roughness_slot_present, mat2.pbr_roughness_slot_present, settings, "pbr_clone_paint_roughness", "Roughness")
