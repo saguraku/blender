@@ -127,6 +127,12 @@ int BKE_object_material_ensure(Main *bmain, Object *ob, Material *material);
 Material *BKE_gpencil_material(Object *ob, short act);
 MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act);
 
+// ほげほげ Begin
+// TODO les fichiers qui incluent cette définition ne savent pas c'est quoi TexPaintSlot et UString
+void BKE_texpaint_pbr_update_components(Material *ma);
+TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, StringRefNull base_name, UString name);
+// ほげほげ End
+
 void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *ob);
 void BKE_texpaint_slots_refresh_object(Scene *scene, Object *ob);
 std::pair<bNodeTree *, bNode *> BKE_texpaint_slot_material_find_node(Material *ma,

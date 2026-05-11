@@ -1684,13 +1684,13 @@ static ePaintSlotFilter material_paint_slot_filter(const Object *ob)
 }
 
 // ほげほげ Begin
-TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, blender::StringRefNull base_name, blender::StringRef name)
+TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, blender::StringRefNull base_name, blender::UString name)
 {
-  bNode *basenode = blender::bke::node_find_node_by_name(material->nodetree, base_name);
+  bNode *basenode = blender::bke::node_find_node_by_name(*material->nodetree, base_name);
   if (basenode)
   {
-    const bNodeSocket *socket = blender::bke::node_find_socket(basenode, SOCK_IN, name);
-    if (blender::bke::node_count_socket_links(material->nodetree, socket))  // Checks if socket has at least one link.
+    const bNodeSocket *socket = blender::bke::node_find_socket(*basenode, SOCK_IN, name);
+    if (blender::bke::node_count_socket_links(*material->nodetree, *socket))  // Checks if socket has at least one link.
     {
       //std::cout << "material.cc " << base_name << " > " << name << " socket_type " << socket->type << std::endl; // TODO Remove after testing
       bNode *node = socket->link->fromnode;  // None of our sockets is multi-input (there is only one link), so we don't have to do any check here.
@@ -1703,7 +1703,7 @@ TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, blend
 					short tot_slots = material->tot_slots;
 					for (int i = 0; i < material->tot_slots; i++) {
 						if (material->texpaintslot[i].ima == image) {
-							return material->texpaintslot[i];
+							return &material->texpaintslot[i];
 						}
 					}
 				}
@@ -1715,13 +1715,13 @@ TexPaintSlot *BKE_texpaint_pbr_update_single_component(Material *material, blend
 
 void BKE_texpaint_pbr_update_components(Material *ma)
 {
-  ma->pbr_color_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "Base Color");
-  ma->pbr_specular_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "IOR");
-  ma->pbr_roughness_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "Roughness");
-  ma->pbr_metallic_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", "Metallic");
-  ma->pbr_normal_slot = BKE_texpaint_pbr_update_single_component(ma, "Normal Map", "Color");
-  ma->pbr_bump_slot = BKE_texpaint_pbr_update_single_component(ma, "Bump", "Height");
-  ma->pbr_displacement_slot = BKE_texpaint_pbr_update_single_component(ma, "Material Output", "Displacement");
+  ma->pbr_color_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", blender::UString("Base Color"));
+  ma->pbr_specular_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", blender::UString("IOR"));
+  ma->pbr_roughness_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", blender::UString("Roughness"));
+  ma->pbr_metallic_slot = BKE_texpaint_pbr_update_single_component(ma, "Principled BSDF", blender::UString("Metallic"));
+  ma->pbr_normal_slot = BKE_texpaint_pbr_update_single_component(ma, "Normal Map", blender::UString("Color"));
+  ma->pbr_bump_slot = BKE_texpaint_pbr_update_single_component(ma, "Bump", blender::UString("Height"));
+  ma->pbr_displacement_slot = BKE_texpaint_pbr_update_single_component(ma, "Material Output", blender::UString("Displacement"));
 }
 // ほげほげ End
 
