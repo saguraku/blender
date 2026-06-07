@@ -344,6 +344,16 @@ struct ProjPaintState {
 
   /* options for projection painting */
   bool do_layer_clone;
+  // ほげほげ Begin
+  bool do_layer_clone_pbr;
+  bool do_layer_clone_pbr_color;
+  bool do_layer_clone_pbr_specular;
+  bool do_layer_clone_pbr_roughness;
+  bool do_layer_clone_pbr_metallic;
+  bool do_layer_clone_pbr_normal;
+  bool do_layer_clone_pbr_bump;
+  bool do_layer_clone_pbr_displacement;
+  // ほげほげ End
   bool do_layer_stencil;
   bool do_layer_stencil_inv;
   bool do_stencil_brush;
@@ -4140,13 +4150,23 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   return true;
 }
 
-struct ProjPaintLayerClone {
+// ほげほげ Begin
+struct ProjPaintClone {
   const float2 *uv_map_clone_base;
+};
+
+struct ProjPaintLayerClone:ProjPaintClone {
   const TexPaintSlot *slot_last_clone;
   const TexPaintSlot *slot_clone;
 };
 
-static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone *layer_clone)
+struct ProjPaintMaterialClone:ProjPaintClone {
+  const Material *mat_last_clone;
+  const Material *mat_clone;
+};
+// ほげほげ End
+
+template <typename T> static void proj_paint_clone_init(ProjPaintState *ps, T *source)
 {
   const Mesh &mesh_orig = *id_cast<const Mesh *>(ps->ob->data);
   const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
@@ -4156,6 +4176,12 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
   if (ps->do_layer_clone) {
     ps->poly_to_loop_uv_clone = MEM_new_array_uninitialized<const float2 *>(ps->faces_num_eval,
                                                                             "proj_paint_mtfaces");
+
+    // ほげほげ Begin
+    if (ps->do_layer_clone_pbr) {
+      reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone = BKE_object_material_get(ps->ob, ps->ob->cptcol);
+    }
+    // ほげほげ End
 
     if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.clone_uv_map_attribute)) {
       if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
@@ -4177,13 +4203,13 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
     }
   }
 
-  memset(layer_clone, 0, sizeof(*layer_clone));
-  layer_clone->uv_map_clone_base = uv_map_clone_base;
+  memset(source, 0, sizeof(*source));
+  source->uv_map_clone_base = uv_map_clone_base;
 }
 
 /* Return true if face should be skipped, false otherwise */
-static bool project_paint_clone_face_skip(ProjPaintState *ps,
-                                          ProjPaintLayerClone *lc,
+template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *ps,
+                                          T *source,
                                           const TexPaintSlot *slot,
                                           const int tri_index)
 {
@@ -4191,42 +4217,46 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
   const StringRef active_uv_map_name = ps->mesh_eval->active_uv_map_name();
   if (ps->do_layer_clone) {
     if (ps->do_material_slots) {
-      lc->slot_clone = project_paint_face_clone_slot(ps, tri_index);
-      /* all faces should have a valid slot, reassert here */
-      if (ELEM(lc->slot_clone, nullptr, slot)) {
-        return true;
+      // ほげほげ Begin
+      if (!ps->do_layer_clone_pbr) {
+        reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone = project_paint_face_clone_slot(ps, tri_index);
+        /* all faces should have a valid slot, reassert here */
+        if (ELEM(reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone, nullptr, slot)) {
+          return true;
+        }
       }
+      // ほげほげ End
     }
     else if (ps->clone_ima == ps->canvas_ima) {
       return true;
     }
 
-    if (ps->do_material_slots) {
-      if (lc->slot_clone != lc->slot_last_clone) {
-        if (lc->slot_clone->uvname) {
-          if (const bke::GAttributeReader attr = attributes.lookup(lc->slot_clone->uvname)) {
+    if (ps->do_material_slots) {  // TODO check, make sure it is PBR-friendly
+      if (reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone != reinterpret_cast<ProjPaintLayerClone*>(source)->slot_last_clone) {
+        if (reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone->uvname) {
+          if (const bke::GAttributeReader attr = attributes.lookup(reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone->uvname)) {
             if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
               if (attr.varray.is_span()) {
-                lc->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
+                source->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
               }
             }
           }
         }
-        if (!lc->uv_map_clone_base) {
+        if (!source->uv_map_clone_base) {
           if (const bke::GAttributeReader attr = attributes.lookup(active_uv_map_name)) {
             if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
               if (attr.varray.is_span()) {
-                lc->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
+                source->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
               }
             }
           }
         }
-        lc->slot_last_clone = lc->slot_clone;
+        reinterpret_cast<ProjPaintLayerClone*>(source)->slot_last_clone = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone;
       }
     }
 
     /* will set multiple times for 4+ sided poly */
-    ps->poly_to_loop_uv_clone[ps->corner_tri_faces_eval[tri_index]] = lc->uv_map_clone_base;
+    ps->poly_to_loop_uv_clone[ps->corner_tri_faces_eval[tri_index]] = source->uv_map_clone_base;
   }
   return false;
 }
@@ -4380,20 +4410,18 @@ static void project_paint_build_proj_ima(ProjPaintState *ps,
   }
 }
 
-static void project_paint_prepare_all_faces(ProjPaintState *ps,
-                                            MemArena *arena,
-                                            const ProjPaintFaceLookup *face_lookup,
-                                            ProjPaintLayerClone *layer_clone,
-                                            const float2 *uv_map_base)
+static void project_paint_prepare_all_faces_layer(ProjPaintState *ps,
+                                                  ProjPaintLayerClone *source,
+                                                  TexPaintSlot *target_slot,
+                                                  const ProjPaintFaceLookup *face_lookup,
+                                                  const float2 *uv_map_base,
+                                                  const bke::AttributeAccessor &attributes,
+                                                  const StringRef &active_uv_name,
+                                                  MemArena *arena,
+                                                  ListBaseT<PrepareImageEntry> &used_images)
 {
-  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
-  const StringRef active_uv_name = ps->mesh_eval->active_uv_map_name();
-  /* Image Vars - keep track of images we have used */
-  ListBaseT<PrepareImageEntry> used_images = {nullptr};
-
-  Image *tpage_last = nullptr, *tpage;
-  TexPaintSlot *slot_last = nullptr;
-  TexPaintSlot *slot = nullptr;
+ Image *tpage_last = nullptr, *tpage;
+  TexPaintSlot *target_slot_last = nullptr;
   int tile_last = -1, tile;
   int image_index = -1, tri_index;
   int prev_poly = -1;
@@ -4409,22 +4437,25 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
     is_face_paintable = project_paint_check_face_paintable(ps, face_lookup, tri_index);
 
     if (!ps->do_stencil_brush) {
-      slot = project_paint_face_paint_slot(ps, tri_index);
-      /* all faces should have a valid slot, reassert here */
-      if (slot == nullptr) {
-        if (const bke::GAttributeReader attr = attributes.lookup(active_uv_name)) {
-          if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
-            if (attr.varray.is_span()) {
-              uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
+      if (!ps->do_layer_clone_pbr){  // TODO check, specially check for next block's nullptr
+        target_slot = project_paint_face_paint_slot(ps, tri_index);
+      }
+      if (target_slot == nullptr) {
+        if (!ps->do_layer_clone_pbr) {
+          if (const bke::GAttributeReader attr = attributes.lookup(active_uv_name)) {
+            if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+              if (attr.varray.is_span()) {
+                uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
+              }
             }
           }
+          tpage = ps->canvas_ima;
         }
-        tpage = ps->canvas_ima;
       }
       else {
-        if (slot != slot_last) {
-          if (slot->uvname) {
-            if (const bke::GAttributeReader attr = attributes.lookup(slot->uvname)) {
+        if (target_slot != target_slot_last) {
+          if (target_slot->uvname) {
+            if (const bke::GAttributeReader attr = attributes.lookup(target_slot->uvname)) {
               if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
                 if (attr.varray.is_span()) {
                   uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
@@ -4442,19 +4473,19 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
               }
             }
           }
-          slot_last = slot;
+          target_slot_last = target_slot;
         }
 
         /* Don't allow painting on linked images. */
-        if (slot->ima != nullptr &&
-            (!ID_IS_EDITABLE(slot->ima) || ID_IS_OVERRIDE_LIBRARY(slot->ima)))
+        if (target_slot->ima != nullptr &&
+            (!ID_IS_EDITABLE(target_slot->ima) || ID_IS_OVERRIDE_LIBRARY(target_slot->ima)))
         {
           skip_tri = true;
           tpage = nullptr;
         }
 
         /* Don't allow using the same image for painting and stenciling. */
-        if (slot->ima == ps->stencil_ima) {
+        if (target_slot->ima == ps->stencil_ima) {
           /* Delay continuing the loop until after loop_uvs and bleed faces are initialized.
            * While this shouldn't be used, face-winding reads all faces.
            * It's less trouble to set all faces to valid UVs,
@@ -4463,7 +4494,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
           tpage = nullptr;
         }
         else {
-          tpage = slot->ima;
+          tpage = target_slot->ima;
         }
       }
     }
@@ -4471,7 +4502,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       tpage = ps->stencil_ima;
     }
 
-    ps->poly_to_loop_uv[tri_faces[tri_index]] = uv_map_base;
+    ps->poly_to_loop_uv[tri_faces[tri_index]] = uv_map_base;  // TODO check this line and below, same for every pbr component?
 
     tile = project_paint_face_paint_tile(tpage, uv_map_base[corner_tris[tri_index][0]]);
 
@@ -4479,7 +4510,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
     project_paint_bleed_add_face_user(ps, arena, corner_tris[tri_index], tri_index);
 #endif
 
-    if (skip_tri || project_paint_clone_face_skip(ps, layer_clone, slot, tri_index)) {
+    if (skip_tri || project_paint_clone_face_skip(ps, source, target_slot, tri_index)) {
       continue;
     }
 
@@ -4565,10 +4596,88 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       if (image_index != -1) {
         /* Initialize the faces screen pixels */
         /* Add this to a list to initialize later */
-        project_paint_delayed_face_init(ps, corner_tris[tri_index], tri_index);
+        project_paint_delayed_face_init(ps, corner_tris[tri_index], tri_index);  // TODO check
       }
     }
   }
+}
+
+template <typename T> static void project_paint_prepare_all_faces(ProjPaintState *ps,
+                                            MemArena *arena,
+                                            const ProjPaintFaceLookup *face_lookup,
+                                            T *source,
+                                            const float2 *uv_map_base)
+{
+  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
+  const StringRef active_uv_name = ps->mesh_eval->active_uv_map_name();
+  /* Image Vars - keep track of images we have used */
+  ListBaseT<PrepareImageEntry> used_images = {nullptr};
+
+  //ほげほげ Begin
+  if (ps->do_layer_clone_pbr) {
+    Material *material_pbr_target = BKE_object_material_get(ps->ob, ps->ob->actcol);
+    if (!ELEM(reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone, nullptr) && !ELEM(material_pbr_target, nullptr) &&
+      !ELEM(reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone, material_pbr_target)) {
+      if (ps->do_layer_clone_pbr_color
+          && reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone->pbr_color_slot != nullptr
+          && material_pbr_target->pbr_color_slot != nullptr) {
+        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_color_slot,
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_color_slot);
+        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_color_slot,
+          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+      }
+      if (ps->do_layer_clone_pbr_specular
+          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_specular_slot != nullptr
+          && material_pbr_target->pbr_specular_slot != nullptr) {
+        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_specular_slot,
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_specular_slot);
+        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_specular_slot,
+          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+      }
+      if (ps->do_layer_clone_pbr_roughness
+          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_roughness_slot != nullptr
+          && material_pbr_target->pbr_roughness_slot != nullptr) {
+        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_roughness_slot,
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_roughness_slot);
+        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_roughness_slot,
+          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+      }
+      if (ps->do_layer_clone_pbr_metallic
+          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_metallic_slot != nullptr
+          && material_pbr_target->pbr_metallic_slot != nullptr) {
+        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_metallic_slot,
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_metallic_slot);
+        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_metallic_slot,
+          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+      }
+      if (ps->do_layer_clone_pbr_normal
+          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_normal_slot != nullptr
+          && material_pbr_target->pbr_normal_slot != nullptr) {
+        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_normal_slot,
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_normal_slot);
+        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_normal_slot,
+          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+      }
+      if (ps->do_layer_clone_pbr_bump
+          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_bump_slot != nullptr
+          && material_pbr_target->pbr_bump_slot != nullptr) {
+        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_bump_slot,
+          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_bump_slot);
+        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_bump_slot,
+          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+      }
+    }
+  } else {
+    project_paint_prepare_all_faces_layer(ps,reinterpret_cast<ProjPaintLayerClone *>(source),nullptr,
+      face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+  }
+  //ほげほげ End
 
   /* Build an array of images we use. */
   if (ps->is_shared_user == false) {
@@ -4583,6 +4692,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
 static void project_paint_begin(const bContext *C, ProjPaintState *ps, const char symmetry_flag)
 {
   ProjPaintLayerClone layer_clone;
+  ProjPaintMaterialClone material_clone;
   ProjPaintFaceLookup face_lookup;
   const float2 *uv_map_base = nullptr;
 
@@ -4615,7 +4725,13 @@ static void project_paint_begin(const bContext *C, ProjPaintState *ps, const cha
   const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
 
   proj_paint_face_lookup_init(ps, &face_lookup);
-  proj_paint_layer_clone_init(ps, &layer_clone);
+  // ほげほげ Begin
+  if (ps->do_layer_clone_pbr) {
+    proj_paint_clone_init(ps, &material_clone);
+  } else {
+    proj_paint_clone_init(ps, &layer_clone);
+  }
+  // ほげほげ End
 
   if (ps->do_layer_stencil || ps->do_stencil_brush) {
     if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.stencil_uv_map_attribute)) {
@@ -4690,7 +4806,13 @@ static void project_paint_begin(const bContext *C, ProjPaintState *ps, const cha
 
   proj_paint_state_vert_flags_init(ps);
 
-  project_paint_prepare_all_faces(ps, arena, &face_lookup, &layer_clone, uv_map_base);
+  // ほげほげ Begin
+  if (ps->do_layer_clone_pbr) {
+    project_paint_prepare_all_faces<ProjPaintMaterialClone>(ps, arena, &face_lookup, &material_clone, uv_map_base);
+  } else {
+    project_paint_prepare_all_faces<ProjPaintLayerClone>(ps, arena, &face_lookup, &layer_clone, uv_map_base);
+  }
+  // ほげほげ End
 }
 
 static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
@@ -6058,6 +6180,20 @@ static void project_state_init(bContext *C,
 
   if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
     ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
+    // ほげ Begin
+    if (ps->do_layer_clone) {
+      ps->do_layer_clone_pbr = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR);
+      if (ps->do_layer_clone_pbr) {
+        ps->do_layer_clone_pbr_color =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_COLOR);
+        ps->do_layer_clone_pbr_specular =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_SPECULAR);
+        ps->do_layer_clone_pbr_roughness =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_ROUGHNESS);
+        ps->do_layer_clone_pbr_metallic =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_METALLIC);
+        ps->do_layer_clone_pbr_normal =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_NORMAL);
+        ps->do_layer_clone_pbr_bump =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_BUMP);
+        ps->do_layer_clone_pbr_displacement =  (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE_PBR_DISPLACEMENT);
+      }
+    }
+    // ほげ End
   }
 
   ps->do_stencil_brush = (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK);
