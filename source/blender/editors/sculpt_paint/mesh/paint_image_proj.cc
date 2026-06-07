@@ -4616,66 +4616,76 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
   //ほげほげ Begin
   if (ps->do_layer_clone_pbr) {
     Material *material_pbr_target = BKE_object_material_get(ps->ob, ps->ob->actcol);
-    if (!ELEM(reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone, nullptr) && !ELEM(material_pbr_target, nullptr) &&
-      !ELEM(reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone, material_pbr_target)) {
+    const Material *material_pbr_source = reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone;
+    const Material *material_pbr_source_last = reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_last_clone;
+    if (!ELEM(material_pbr_source, nullptr) && !ELEM(material_pbr_target, nullptr) &&
+        !ELEM(material_pbr_source, material_pbr_target)) {
       if (ps->do_layer_clone_pbr_color
-          && reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone->pbr_color_slot != nullptr
+          && material_pbr_source->pbr_color_slot != nullptr
           && material_pbr_target->pbr_color_slot != nullptr) {
-        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_color_slot,
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_color_slot);
-        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_color_slot,
-          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+                material_pbr_source->pbr_color_slot,
+                    material_pbr_source_last->pbr_color_slot);
+        project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_color_slot,
+                                              face_lookup,uv_map_base,attributes,active_uv_name,
+                                              arena,used_images);
       }
       if (ps->do_layer_clone_pbr_specular
-          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_specular_slot != nullptr
+          && material_pbr_source->pbr_specular_slot != nullptr
           && material_pbr_target->pbr_specular_slot != nullptr) {
-        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_specular_slot,
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_specular_slot);
-        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_specular_slot,
-          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+                material_pbr_source->pbr_specular_slot,
+                    material_pbr_source_last->pbr_specular_slot);
+        project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_specular_slot,
+                                              face_lookup,uv_map_base,attributes,active_uv_name,
+                                              arena,used_images);
       }
       if (ps->do_layer_clone_pbr_roughness
-          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_roughness_slot != nullptr
+          && material_pbr_source->pbr_roughness_slot != nullptr
           && material_pbr_target->pbr_roughness_slot != nullptr) {
-        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_roughness_slot,
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_roughness_slot);
-        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_roughness_slot,
-          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+                material_pbr_source->pbr_roughness_slot,
+                    material_pbr_source_last->pbr_roughness_slot);
+        project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_roughness_slot,
+                                              face_lookup,uv_map_base,attributes,active_uv_name,
+                                              arena,used_images);
       }
       if (ps->do_layer_clone_pbr_metallic
-          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_metallic_slot != nullptr
+          && material_pbr_source->pbr_metallic_slot != nullptr
           && material_pbr_target->pbr_metallic_slot != nullptr) {
-        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_metallic_slot,
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_metallic_slot);
-        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_metallic_slot,
-          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+                material_pbr_source->pbr_metallic_slot,
+                    material_pbr_source_last->pbr_metallic_slot);
+        project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_metallic_slot,
+                                              face_lookup,uv_map_base,attributes,active_uv_name,
+                                              arena,used_images);
       }
       if (ps->do_layer_clone_pbr_normal
-          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_normal_slot != nullptr
+          && material_pbr_source->pbr_normal_slot != nullptr
           && material_pbr_target->pbr_normal_slot != nullptr) {
-        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_normal_slot,
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_normal_slot);
-        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_normal_slot,
-          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+                material_pbr_source->pbr_normal_slot,
+                    material_pbr_source_last->pbr_normal_slot);
+        project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_normal_slot,
+                                              face_lookup,uv_map_base,attributes,active_uv_name,
+                                              arena,used_images);
       }
       if (ps->do_layer_clone_pbr_bump
-          && reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_bump_slot != nullptr
+          && material_pbr_source->pbr_bump_slot != nullptr
           && material_pbr_target->pbr_bump_slot != nullptr) {
-        ProjPaintLayerClone temp(ProjPaintClone(source->uv_map_clone_base),
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_clone->pbr_bump_slot,
-          reinterpret_cast<ProjPaintMaterialClone *>(source)->mat_last_clone->pbr_bump_slot);
-        project_paint_prepare_all_faces_layer(ps,&temp,material_pbr_target->pbr_bump_slot,
-          face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+                material_pbr_source->pbr_bump_slot,
+                    material_pbr_source_last->pbr_bump_slot);
+        project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_bump_slot,
+                                              face_lookup,uv_map_base,attributes,active_uv_name,
+                                              arena,used_images);
       }
     }
   } else {
-    project_paint_prepare_all_faces_layer(ps,reinterpret_cast<ProjPaintLayerClone *>(source),nullptr,
-      face_lookup,uv_map_base,attributes,active_uv_name,arena,used_images);
+    ProjPaintLayerClone *source_cast = reinterpret_cast<ProjPaintLayerClone*>(source);
+    project_paint_prepare_all_faces_layer(ps,source_cast,nullptr,
+                                          face_lookup,uv_map_base,attributes,active_uv_name,
+                                          arena,used_images);
   }
   //ほげほげ End
 
