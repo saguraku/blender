@@ -4627,8 +4627,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
           && material_pbr_source->pbr_color_slot != nullptr
           && material_pbr_target->pbr_color_slot != nullptr) {
         ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
-                material_pbr_source->pbr_color_slot,
-                    material_pbr_source_last->pbr_color_slot);
+                                        material_pbr_source->pbr_color_slot,
+                                        material_pbr_source_last->pbr_color_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_color_slot,
                                               face_lookup,uv_map_base,attributes,active_uv_name,
                                               arena,used_images);
@@ -4637,8 +4637,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
           && material_pbr_source->pbr_specular_slot != nullptr
           && material_pbr_target->pbr_specular_slot != nullptr) {
         ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
-                material_pbr_source->pbr_specular_slot,
-                    material_pbr_source_last->pbr_specular_slot);
+                                        material_pbr_source->pbr_specular_slot,
+                                        material_pbr_source_last->pbr_specular_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_specular_slot,
                                               face_lookup,uv_map_base,attributes,active_uv_name,
                                               arena,used_images);
@@ -4647,8 +4647,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
           && material_pbr_source->pbr_roughness_slot != nullptr
           && material_pbr_target->pbr_roughness_slot != nullptr) {
         ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
-                material_pbr_source->pbr_roughness_slot,
-                    material_pbr_source_last->pbr_roughness_slot);
+                                        material_pbr_source->pbr_roughness_slot,
+                                        material_pbr_source_last->pbr_roughness_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_roughness_slot,
                                               face_lookup,uv_map_base,attributes,active_uv_name,
                                               arena,used_images);
@@ -4657,8 +4657,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
           && material_pbr_source->pbr_metallic_slot != nullptr
           && material_pbr_target->pbr_metallic_slot != nullptr) {
         ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
-                material_pbr_source->pbr_metallic_slot,
-                    material_pbr_source_last->pbr_metallic_slot);
+                                        material_pbr_source->pbr_metallic_slot,
+                                        material_pbr_source_last->pbr_metallic_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_metallic_slot,
                                               face_lookup,uv_map_base,attributes,active_uv_name,
                                               arena,used_images);
@@ -4667,8 +4667,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
           && material_pbr_source->pbr_normal_slot != nullptr
           && material_pbr_target->pbr_normal_slot != nullptr) {
         ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
-                material_pbr_source->pbr_normal_slot,
-                    material_pbr_source_last->pbr_normal_slot);
+                                        material_pbr_source->pbr_normal_slot,
+                                        material_pbr_source_last->pbr_normal_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_normal_slot,
                                               face_lookup,uv_map_base,attributes,active_uv_name,
                                               arena,used_images);
@@ -4677,8 +4677,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
           && material_pbr_source->pbr_bump_slot != nullptr
           && material_pbr_target->pbr_bump_slot != nullptr) {
         ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
-                material_pbr_source->pbr_bump_slot,
-                    material_pbr_source_last->pbr_bump_slot);
+                                        material_pbr_source->pbr_bump_slot,
+                                        material_pbr_source_last->pbr_bump_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_bump_slot,
                                               face_lookup,uv_map_base,attributes,active_uv_name,
                                               arena,used_images);
