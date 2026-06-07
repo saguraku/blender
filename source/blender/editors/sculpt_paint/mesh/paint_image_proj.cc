@@ -4210,7 +4210,7 @@ template <typename T> static void proj_paint_clone_init(ProjPaintState *ps, T *s
 /* Return true if face should be skipped, false otherwise */
 template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *ps,
                                           T *source,
-                                          const TexPaintSlot *slot,
+                                          const TexPaintSlot *layer_target,
                                           const int tri_index)
 {
   const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
@@ -4219,9 +4219,10 @@ template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *
     if (ps->do_material_slots) {
       // ほげほげ Begin
       if (!ps->do_layer_clone_pbr) {
-        reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone = project_paint_face_clone_slot(ps, tri_index);
+        const TexPaintSlot* layer_source = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone;
+        layer_source = project_paint_face_clone_slot(ps, tri_index);
         /* all faces should have a valid slot, reassert here */
-        if (ELEM(reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone, nullptr, slot)) {
+        if (ELEM(layer_source, nullptr, layer_target)) {
           return true;
         }
       }
@@ -4232,9 +4233,11 @@ template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *
     }
 
     if (ps->do_material_slots) {  // TODO check, make sure it is PBR-friendly
-      if (reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone != reinterpret_cast<ProjPaintLayerClone*>(source)->slot_last_clone) {
-        if (reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone->uvname) {
-          if (const bke::GAttributeReader attr = attributes.lookup(reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone->uvname)) {
+      const TexPaintSlot* layer_source = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone;
+      const TexPaintSlot* layer_source_last = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_last_clone;
+      if (layer_source != layer_source_last) {
+        if (layer_source->uvname) {
+          if (const bke::GAttributeReader attr = attributes.lookup(layer_source->uvname)) {
             if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
               if (attr.varray.is_span()) {
                 source->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
@@ -4251,7 +4254,7 @@ template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *
             }
           }
         }
-        reinterpret_cast<ProjPaintLayerClone*>(source)->slot_last_clone = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone;
+        layer_source_last = layer_source;
       }
     }
 
