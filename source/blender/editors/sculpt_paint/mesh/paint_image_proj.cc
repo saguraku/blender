@@ -4151,18 +4151,18 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
 }
 
 // ほげほげ Begin
-struct ProjPaintClone {
+struct ProjPaintSource {
   const float2 *uv_map_clone_base;
 };
 
-struct ProjPaintLayerClone:ProjPaintClone {
-  const TexPaintSlot *slot_last_clone;
-  const TexPaintSlot *slot_clone;
+struct ProjPaintLayerSource:ProjPaintSource {
+  const TexPaintSlot *layer_last;
+  const TexPaintSlot *layer;
 };
 
-struct ProjPaintMaterialClone:ProjPaintClone {
-  const Material *mat_last_clone;
-  const Material *mat_clone;
+struct ProjPaintMaterialSource:ProjPaintSource {
+  const Material *material_last;
+  const Material *material;
 };
 // ほげほげ End
 
@@ -4179,7 +4179,7 @@ template <typename T> static void proj_paint_clone_init(ProjPaintState *ps, T *s
 
     // ほげほげ Begin
     if (ps->do_layer_clone_pbr) {
-      reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone = BKE_object_material_get(ps->ob, ps->ob->cptcol);
+      reinterpret_cast<ProjPaintMaterialSource*>(source)->material = BKE_object_material_get(ps->ob, ps->ob->cptcol);
     }
     // ほげほげ End
 
@@ -4219,7 +4219,7 @@ template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *
     if (ps->do_material_slots) {
       // ほげほげ Begin
       if (!ps->do_layer_clone_pbr) {
-        const TexPaintSlot* layer_source = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone;
+        const TexPaintSlot* layer_source = reinterpret_cast<ProjPaintLayerSource*>(source)->layer;
         layer_source = project_paint_face_clone_slot(ps, tri_index);
         /* all faces should have a valid slot, reassert here */
         if (ELEM(layer_source, nullptr, layer_target)) {
@@ -4233,11 +4233,11 @@ template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *
     }
 
     if (ps->do_material_slots) {  // TODO check, make sure it is PBR-friendly
-      const TexPaintSlot* layer_source = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_clone;
-      const TexPaintSlot* layer_source_last = reinterpret_cast<ProjPaintLayerClone*>(source)->slot_last_clone;
-      if (layer_source != layer_source_last) {
-        if (layer_source->uvname) {
-          if (const bke::GAttributeReader attr = attributes.lookup(layer_source->uvname)) {
+      const TexPaintSlot* source_layer = reinterpret_cast<ProjPaintLayerSource*>(source)->layer;
+      const TexPaintSlot* source_layer_last = reinterpret_cast<ProjPaintLayerSource*>(source)->layer_last;
+      if (source_layer != source_layer_last) {
+        if (source_layer->uvname) {
+          if (const bke::GAttributeReader attr = attributes.lookup(source_layer->uvname)) {
             if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
               if (attr.varray.is_span()) {
                 source->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
@@ -4254,7 +4254,7 @@ template <typename T> static bool project_paint_clone_face_skip(ProjPaintState *
             }
           }
         }
-        layer_source_last = layer_source;
+        source_layer_last = source_layer;
       }
     }
 
@@ -4414,7 +4414,7 @@ static void project_paint_build_proj_ima(ProjPaintState *ps,
 }
 
 static void project_paint_prepare_all_faces_layer(ProjPaintState *ps,
-                                                  ProjPaintLayerClone *source,
+                                                  ProjPaintLayerSource *source,
                                                   TexPaintSlot *target_slot,
                                                   const ProjPaintFaceLookup *face_lookup,
                                                   const float2 *uv_map_base,
@@ -4619,14 +4619,14 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
   //ほげほげ Begin
   if (ps->do_layer_clone_pbr) {
     Material *material_pbr_target = BKE_object_material_get(ps->ob, ps->ob->actcol);
-    const Material *material_pbr_source = reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_clone;
-    const Material *material_pbr_source_last = reinterpret_cast<ProjPaintMaterialClone*>(source)->mat_last_clone;
+    const Material *material_pbr_source = reinterpret_cast<ProjPaintMaterialSource*>(source)->material;
+    const Material *material_pbr_source_last = reinterpret_cast<ProjPaintMaterialSource*>(source)->material_last;
     if (!ELEM(material_pbr_source, nullptr) && !ELEM(material_pbr_target, nullptr) &&
         !ELEM(material_pbr_source, material_pbr_target)) {
       if (ps->do_layer_clone_pbr_color
           && material_pbr_source->pbr_color_slot != nullptr
           && material_pbr_target->pbr_color_slot != nullptr) {
-        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+        ProjPaintLayerSource source_slots(ProjPaintSource(source->uv_map_clone_base),
                                         material_pbr_source->pbr_color_slot,
                                         material_pbr_source_last->pbr_color_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_color_slot,
@@ -4636,7 +4636,7 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
       if (ps->do_layer_clone_pbr_specular
           && material_pbr_source->pbr_specular_slot != nullptr
           && material_pbr_target->pbr_specular_slot != nullptr) {
-        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+        ProjPaintLayerSource source_slots(ProjPaintSource(source->uv_map_clone_base),
                                         material_pbr_source->pbr_specular_slot,
                                         material_pbr_source_last->pbr_specular_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_specular_slot,
@@ -4646,7 +4646,7 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
       if (ps->do_layer_clone_pbr_roughness
           && material_pbr_source->pbr_roughness_slot != nullptr
           && material_pbr_target->pbr_roughness_slot != nullptr) {
-        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+        ProjPaintLayerSource source_slots(ProjPaintSource(source->uv_map_clone_base),
                                         material_pbr_source->pbr_roughness_slot,
                                         material_pbr_source_last->pbr_roughness_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_roughness_slot,
@@ -4656,7 +4656,7 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
       if (ps->do_layer_clone_pbr_metallic
           && material_pbr_source->pbr_metallic_slot != nullptr
           && material_pbr_target->pbr_metallic_slot != nullptr) {
-        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+        ProjPaintLayerSource source_slots(ProjPaintSource(source->uv_map_clone_base),
                                         material_pbr_source->pbr_metallic_slot,
                                         material_pbr_source_last->pbr_metallic_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_metallic_slot,
@@ -4666,7 +4666,7 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
       if (ps->do_layer_clone_pbr_normal
           && material_pbr_source->pbr_normal_slot != nullptr
           && material_pbr_target->pbr_normal_slot != nullptr) {
-        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+        ProjPaintLayerSource source_slots(ProjPaintSource(source->uv_map_clone_base),
                                         material_pbr_source->pbr_normal_slot,
                                         material_pbr_source_last->pbr_normal_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_normal_slot,
@@ -4676,7 +4676,7 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
       if (ps->do_layer_clone_pbr_bump
           && material_pbr_source->pbr_bump_slot != nullptr
           && material_pbr_target->pbr_bump_slot != nullptr) {
-        ProjPaintLayerClone source_slots(ProjPaintClone(source->uv_map_clone_base),
+        ProjPaintLayerSource source_slots(ProjPaintSource(source->uv_map_clone_base),
                                         material_pbr_source->pbr_bump_slot,
                                         material_pbr_source_last->pbr_bump_slot);
         project_paint_prepare_all_faces_layer(ps,&source_slots,material_pbr_target->pbr_bump_slot,
@@ -4685,7 +4685,7 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
       }
     }
   } else {
-    ProjPaintLayerClone *source_cast = reinterpret_cast<ProjPaintLayerClone*>(source);
+    ProjPaintLayerSource *source_cast = reinterpret_cast<ProjPaintLayerSource*>(source);
     project_paint_prepare_all_faces_layer(ps,source_cast,nullptr,
                                           face_lookup,uv_map_base,attributes,active_uv_name,
                                           arena,used_images);
@@ -4704,8 +4704,8 @@ template <typename T> static void project_paint_prepare_all_faces(ProjPaintState
 /* run once per stroke before projection painting */
 static void project_paint_begin(const bContext *C, ProjPaintState *ps, const char symmetry_flag)
 {
-  ProjPaintLayerClone layer_clone;
-  ProjPaintMaterialClone material_clone;
+  ProjPaintLayerSource layer_source;
+  ProjPaintMaterialSource material_source;
   ProjPaintFaceLookup face_lookup;
   const float2 *uv_map_base = nullptr;
 
@@ -4740,9 +4740,9 @@ static void project_paint_begin(const bContext *C, ProjPaintState *ps, const cha
   proj_paint_face_lookup_init(ps, &face_lookup);
   // ほげほげ Begin
   if (ps->do_layer_clone_pbr) {
-    proj_paint_clone_init(ps, &material_clone);
+    proj_paint_clone_init(ps, &material_source);
   } else {
-    proj_paint_clone_init(ps, &layer_clone);
+    proj_paint_clone_init(ps, &layer_source);
   }
   // ほげほげ End
 
@@ -4821,9 +4821,9 @@ static void project_paint_begin(const bContext *C, ProjPaintState *ps, const cha
 
   // ほげほげ Begin
   if (ps->do_layer_clone_pbr) {
-    project_paint_prepare_all_faces<ProjPaintMaterialClone>(ps, arena, &face_lookup, &material_clone, uv_map_base);
+    project_paint_prepare_all_faces<ProjPaintMaterialSource>(ps, arena, &face_lookup, &material_source, uv_map_base);
   } else {
-    project_paint_prepare_all_faces<ProjPaintLayerClone>(ps, arena, &face_lookup, &layer_clone, uv_map_base);
+    project_paint_prepare_all_faces<ProjPaintLayerSource>(ps, arena, &face_lookup, &layer_source, uv_map_base);
   }
   // ほげほげ End
 }
